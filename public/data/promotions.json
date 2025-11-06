@@ -1,0 +1,160 @@
+{
+  "promotions": [
+    {
+      "id": "promo-semana-calabresa",
+      "name": "Segunda da Calabresa",
+      "description": "Toda segunda-feira, 20% de desconto em pizzas de calabresa",
+      "type": "time_based",
+      "enabled": true,
+      "applyOrder": 10,
+      "conditions": {
+        "dayOfWeek": [1],
+        "productIds": ["pizza-calabresa"]
+      },
+      "discount": {
+        "kind": "percentage",
+        "value": 20
+      },
+      "stackable": false
+    },
+    {
+      "id": "promo-terca-mussarela",
+      "name": "Terça da Mussarela",
+      "description": "Toda terça-feira, pizza mussarela grande por apenas R$ 39,90",
+      "type": "time_based",
+      "enabled": true,
+      "applyOrder": 10,
+      "conditions": {
+        "dayOfWeek": [2],
+        "productIds": ["pizza-mussarela"]
+      },
+      "discount": {
+        "kind": "fixed",
+        "value": 13.00
+      },
+      "stackable": false
+    },
+    {
+      "id": "promo-combo-cheaper",
+      "name": "Melhor Preço Garantido",
+      "description": "Comparamos o preço do combo com a soma dos produtos e aplicamos o menor valor",
+      "type": "price_compare",
+      "enabled": true,
+      "applyOrder": 5,
+      "conditions": {
+        "productTypes": ["combo"]
+      },
+      "comparison": {
+        "modes": ["directPrice", "reconstructedPrice"],
+        "rule": "chooseLowest",
+        "reconstructed": {
+          "sumComponents": true,
+          "includeAddons": true
+        }
+      },
+      "stackable": false
+    },
+    {
+      "id": "coupon-bemvindo10",
+      "name": "Cupom Bem-Vindo",
+      "description": "R$ 10 de desconto na primeira compra",
+      "type": "coupon",
+      "code": "BEMVINDO10",
+      "enabled": true,
+      "applyOrder": 15,
+      "discount": {
+        "kind": "fixed",
+        "value": 10.00
+      },
+      "minSubtotal": 40.00,
+      "stackable": false
+    },
+    {
+      "id": "coupon-pizza20",
+      "name": "Cupom Pizza20",
+      "description": "20% de desconto em pedidos acima de R$ 60",
+      "type": "coupon",
+      "code": "PIZZA20",
+      "enabled": true,
+      "applyOrder": 15,
+      "discount": {
+        "kind": "percentage",
+        "value": 20
+      },
+      "minSubtotal": 60.00,
+      "stackable": false
+    },
+    {
+      "id": "promo-leve3pague2-bebidas",
+      "name": "Leve 3 Bebidas Pague 2",
+      "description": "Na compra de 3 bebidas lata, pague apenas 2",
+      "type": "bulk",
+      "enabled": true,
+      "applyOrder": 20,
+      "conditions": {
+        "productCategory": "bebidas",
+        "minQuantity": 3
+      },
+      "discount": {
+        "kind": "freeItem",
+        "forEvery": 3,
+        "payFor": 2
+      },
+      "stackable": true
+    },
+    {
+      "id": "promo-happy-hour",
+      "name": "Happy Hour",
+      "description": "Das 17h às 19h, 15% de desconto em todos os pedidos",
+      "type": "time_based",
+      "enabled": true,
+      "applyOrder": 25,
+      "conditions": {
+        "hourRange": [17, 19]
+      },
+      "discount": {
+        "kind": "percentage",
+        "value": 15
+      },
+      "stackable": false
+    },
+    {
+      "id": "promo-fds-familia",
+      "name": "Fim de Semana em Família",
+      "description": "Sábado e domingo, 10% de desconto em combos",
+      "type": "time_based",
+      "enabled": true,
+      "applyOrder": 12,
+      "conditions": {
+        "dayOfWeek": [0, 6],
+        "productTypes": ["combo"]
+      },
+      "discount": {
+        "kind": "percentage",
+        "value": 10
+      },
+      "stackable": false
+    },
+    {
+      "id": "promo-primeira-compra",
+      "name": "Primeira Compra",
+      "description": "25% de desconto na primeira compra acima de R$ 50",
+      "type": "first_order",
+      "enabled": true,
+      "applyOrder": 8,
+      "discount": {
+        "kind": "percentage",
+        "value": 25
+      },
+      "minSubtotal": 50.00,
+      "stackable": false,
+      "maxUsage": 1
+    }
+  ],
+  "comparisonDefaults": {
+    "tieBreaker": "favorCustomer",
+    "maxStack": 1,
+    "evaluationSequence": ["promotionPriority", "maxDiscountAmount"]
+  }
+}
+

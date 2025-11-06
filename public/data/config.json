@@ -1,0 +1,86 @@
+{
+  "store": {
+    "name": "Pizzaria Delivery",
+    "logo": "/logo.jpeg",
+    "banner": "/banner.jpeg",
+    "address": "São João de Meriti - RJ",
+    "phone": "(21) 99999-9999",
+    "whatsapp": "5521999999999",
+    "email": "contato@pizzariadeliv.com",
+    "description": "A melhor pizza da região!",
+    "taxaEntrega": 5.00,
+    "tempoMedioEntrega": 45,
+    "pedidoMinimo": 20.00
+  },
+  "freeDeliveryAbove": 50.00,
+  "horarioFuncionamento": {
+    "segunda": { "aberto": true, "abertura": "18:30", "fechamento": "23:30" },
+    "terca": { "aberto": true, "abertura": "00:00", "fechamento": "23:30" },
+    "quarta": { "aberto": true, "abertura": "18:30", "fechamento": "23:30" },
+    "quinta": { "aberto": true, "abertura": "18:30", "fechamento": "23:30" },
+    "sexta": { "aberto": true, "abertura": "18:30", "fechamento": "23:30" },
+    "sabado": { "aberto": true, "abertura": "18:30", "fechamento": "23:30" },
+    "domingo": { "aberto": true, "abertura": "18:30", "fechamento": "23:30" }
+  },
+  "orderBumps": {
+    "enabled": true,
+    "titulo": "Peça também",
+    "itens": [
+      {
+        "productId": "",
+        "desconto": 0,
+        "descontoTipo": "percent",
+        "ativo": true
+      }
+    ],
+    "categorias": ["bebidas"],
+    "quantidade": 3,
+    "sortBy": "price"
+  },
+  "pagamento": {
+    "pix": {
+      "enabled": true,
+      "chave": "pizzaria@email.com",
+      "nomeBeneficiario": "Pizzaria Delivery LTDA"
+    },
+    "dinheiro": {
+      "enabled": true,
+      "aceitaTroco": true
+    },
+    "cartao": {
+      "enabled": false
+    }
+  },
+  "paymentGateways": {
+    "activeGateway": "medusapay",
+    "rotationEnabled": false,
+    "rotationStrategy": "manual",
+    "gateways": {
+      "medusapay": {
+        "enabled": true,
+        "secretKey": "",
+        "apiUrl": "https://api.v2.medusapay.com.br/v1",
+        "priority": 1
+      },
+      "assetpagamentos": {
+        "enabled": false,
+        "secretKey": "",
+        "companyId": "",
+        "apiUrl": "https://api.assetpagamentos.com/functions/v1",
+        "priority": 2
+      }
+    }
+  },
+  "redesSociais": {
+    "instagram": "@pizzariadeliv",
+    "facebook": "pizzariadeliv",
+    "whatsapp": "5521999999999"
+  },
+  "mensagens": {
+    "bemVindo": "Bem-vindo à Pizzaria Delivery!",
+    "estabelecimentoFechado": "Estamos fechados no momento",
+    "pedidoMinimo": "Pedido mínimo de R$ {valor}",
+    "sucessoPedido": "Pedido realizado com sucesso!"
+  }
+}
+

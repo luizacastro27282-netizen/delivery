@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <defs>
+    <linearGradient id="grad-guarana-lata" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:0.7" />
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" fill="#f3f4f6"/>
+  <circle cx="150" cy="130" r="100" fill="url(#grad-guarana-lata)"/>
+  <text x="150" y="150" font-size="60" text-anchor="middle">🥤</text>
+  <text x="150" y="270" font-size="18" text-anchor="middle" fill="#374151" font-weight="bold">Guarana Lata</text>
+</svg>

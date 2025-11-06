@@ -1,0 +1,290 @@
+[
+  {
+    "id": "pizza-calabresa",
+    "type": "pizza",
+    "name": "Pizza Calabresa",
+    "description": "Calabresa fatiada, cebola, azeitonas e mussarela",
+    "images": ["/images/pizzas/calabresa.jpg"],
+    "basePrices": {
+      "broto": 24.90,
+      "media": 39.90,
+      "grande": 59.90,
+      "gigante": 79.90
+    },
+    "flavors": ["Calabresa"],
+    "maxFlavors": 1,
+    "category": "pizzas",
+    "tags": ["mais-vendida", "tradicional"],
+    "available": true,
+    "addons": [
+      { "id": "borda-catupiry", "name": "Borda de Catupiry", "price": 8.00, "available": true },
+      { "id": "borda-cheddar", "name": "Borda de Cheddar", "price": 8.00, "available": true }
+    ]
+  },
+  {
+    "id": "pizza-mussarela",
+    "type": "pizza",
+    "name": "Pizza Mussarela",
+    "description": "Mussarela, tomate e manjericão",
+    "images": ["/images/pizzas/mussarela.svg"],
+    "basePrices": {
+      "broto": 22.90,
+      "media": 35.90,
+      "grande": 52.90,
+      "gigante": 72.90
+    },
+    "flavors": ["Mussarela"],
+    "maxFlavors": 1,
+    "category": "pizzas",
+    "tags": ["tradicional"],
+    "available": true,
+    "addons": [
+      { "id": "borda-catupiry", "name": "Borda de Catupiry", "price": 8.00, "available": true },
+      { "id": "borda-cheddar", "name": "Borda de Cheddar", "price": 8.00, "available": true }
+    ]
+  },
+  {
+    "id": "pizza-frango-catupiry",
+    "type": "pizza",
+    "name": "Pizza Frango com Catupiry",
+    "description": "Frango desfiado, catupiry e azeitonas",
+    "images": ["/images/pizzas/frango-catupiry.svg"],
+    "basePrices": {
+      "broto": 26.90,
+      "media": 42.90,
+      "grande": 62.90,
+      "gigante": 82.90
+    },
+    "flavors": ["Frango com Catupiry"],
+    "maxFlavors": 1,
+    "category": "pizzas",
+    "tags": ["mais-vendida"],
+    "available": true,
+    "addons": [
+      { "id": "borda-catupiry", "name": "Borda de Catupiry", "price": 8.00, "available": true },
+      { "id": "borda-cheddar", "name": "Borda de Cheddar", "price": 8.00, "available": true }
+    ]
+  },
+  {
+    "id": "pizza-portuguesa",
+    "type": "pizza",
+    "name": "Pizza Portuguesa",
+    "description": "Presunto, ovos, cebola, azeitonas, ervilha e mussarela",
+    "images": ["/images/pizzas/portuguesa.svg"],
+    "basePrices": {
+      "broto": 28.90,
+      "media": 44.90,
+      "grande": 64.90,
+      "gigante": 84.90
+    },
+    "flavors": ["Portuguesa"],
+    "maxFlavors": 1,
+    "category": "pizzas",
+    "tags": ["tradicional"],
+    "available": true,
+    "addons": [
+      { "id": "borda-catupiry", "name": "Borda de Catupiry", "price": 8.00, "available": true },
+      { "id": "borda-cheddar", "name": "Borda de Cheddar", "price": 8.00, "available": true }
+    ]
+  },
+  {
+    "id": "pizza-4queijos",
+    "type": "pizza",
+    "name": "Pizza 4 Queijos",
+    "description": "Mussarela, provolone, parmesão e catupiry",
+    "images": ["/images/pizzas/4queijos.svg"],
+    "basePrices": {
+      "broto": 29.90,
+      "media": 46.90,
+      "grande": 66.90,
+      "gigante": 86.90
+    },
+    "flavors": ["4 Queijos"],
+    "maxFlavors": 1,
+    "category": "pizzas",
+    "tags": ["premium"],
+    "available": true,
+    "addons": [
+      { "id": "borda-catupiry", "name": "Borda de Catupiry", "price": 8.00, "available": true },
+      { "id": "borda-cheddar", "name": "Borda de Cheddar", "price": 8.00, "available": true }
+    ]
+  },
+  {
+    "id": "pizza-especial-2sabores",
+    "type": "pizza",
+    "name": "Pizza 2 Sabores",
+    "description": "Escolha 2 sabores diferentes",
+    "images": ["/images/pizzas/2sabores.svg"],
+    "basePrices": {
+      "broto": 28.90,
+      "media": 44.90,
+      "grande": 64.90,
+      "gigante": 84.90
+    },
+    "flavors": ["Calabresa", "Mussarela", "Frango com Catupiry", "Portuguesa", "4 Queijos", "Margherita", "Pepperoni", "Bacon"],
+    "maxFlavors": 2,
+    "category": "pizzas",
+    "tags": ["personalizavel"],
+    "available": true,
+    "addons": [
+      { "id": "borda-catupiry", "name": "Borda de Catupiry", "price": 8.00, "available": true },
+      { "id": "borda-cheddar", "name": "Borda de Cheddar", "price": 8.00, "available": true }
+    ]
+  },
+  {
+    "id": "refrigerante-lata-coca",
+    "type": "drink",
+    "name": "Coca-Cola Lata 350ml",
+    "description": "Refrigerante Coca-Cola lata 350ml gelada",
+    "images": ["/images/bebidas/coca-lata.svg"],
+    "price": 5.00,
+    "category": "bebidas",
+    "tags": [],
+    "available": true
+  },
+  {
+    "id": "refrigerante-lata-guarana",
+    "type": "drink",
+    "name": "Guaraná Antarctica Lata 350ml",
+    "description": "Refrigerante Guaraná Antarctica lata 350ml gelada",
+    "images": ["/images/bebidas/guarana-lata.svg"],
+    "price": 4.50,
+    "category": "bebidas",
+    "tags": [],
+    "available": true
+  },
+  {
+    "id": "refrigerante-2l-coca",
+    "type": "drink",
+    "name": "Coca-Cola 2L",
+    "description": "Refrigerante Coca-Cola garrafa 2 litros",
+    "images": ["/images/bebidas/coca-2l.svg"],
+    "price": 12.00,
+    "category": "bebidas",
+    "tags": [],
+    "available": true
+  },
+  {
+    "id": "suco-laranja",
+    "type": "drink",
+    "name": "Suco de Laranja Natural 500ml",
+    "description": "Suco natural de laranja feito na hora",
+    "images": ["/images/bebidas/suco-laranja.svg"],
+    "price": 8.00,
+    "category": "bebidas",
+    "tags": ["natural"],
+    "available": true
+  },
+  {
+    "id": "sobremesa-pudim",
+    "type": "dessert",
+    "name": "Pudim de Leite",
+    "description": "Delicioso pudim de leite condensado com calda de caramelo",
+    "images": ["/images/sobremesas/pudim.svg"],
+    "price": 12.00,
+    "category": "sobremesas",
+    "tags": [],
+    "available": true
+  },
+  {
+    "id": "sobremesa-petit-gateau",
+    "type": "dessert",
+    "name": "Petit Gateau",
+    "description": "Bolinho de chocolate quente com sorvete de creme",
+    "images": ["/images/sobremesas/petit-gateau.svg"],
+    "price": 18.00,
+    "category": "sobremesas",
+    "tags": ["premium"],
+    "available": true
+  },
+  {
+    "id": "combo-famiglia",
+    "type": "combo",
+    "name": "Combo Famiglia",
+    "description": "1 Pizza Grande + 2 Refrigerantes Lata",
+    "images": ["/images/combos/famiglia.svg"],
+    "items": [
+      { "productId": "pizza-especial-2sabores", "defaultSize": "grande" },
+      { "productId": "refrigerante-lata-coca", "qty": 2 }
+    ],
+    "basePrice": 69.90,
+    "category": "combos",
+    "tags": ["promocao"],
+    "available": true
+  },
+  {
+    "id": "combo-casal",
+    "type": "combo",
+    "name": "Combo Casal",
+    "description": "1 Pizza Média + 1 Refrigerante 2L",
+    "images": ["/images/combos/casal.svg"],
+    "items": [
+      { "productId": "pizza-especial-2sabores", "defaultSize": "media" },
+      { "productId": "refrigerante-2l-coca", "qty": 1 }
+    ],
+    "basePrice": 52.90,
+    "category": "combos",
+    "tags": ["promocao"],
+    "available": true
+  },
+  {
+    "id": "combo-festa",
+    "type": "combo",
+    "name": "Combo Festa",
+    "description": "2 Pizzas Grandes + 1 Refrigerante 2L + 1 Sobremesa",
+    "images": ["/images/combos/festa.svg"],
+    "items": [
+      { "productId": "pizza-especial-2sabores", "defaultSize": "grande", "qty": 2 },
+      { "productId": "refrigerante-2l-coca", "qty": 1 },
+      { "productId": "sobremesa-pudim", "qty": 1 }
+    ],
+    "basePrice": 139.90,
+    "category": "combos",
+    "tags": ["promocao", "mais-vendida"],
+    "available": true
+  },
+  {
+    "id": "combo-com-coca",
+    "type": "combo",
+    "name": "Combo Pizza + Coca 2L",
+    "description": "1 Pizza Média de até 2 sabores + 1 Coca-Cola 2L",
+    "images": ["/images/combos/combocomcoca.jpg"],
+    "basePrice": 49.90,
+    "category": "combos",
+    "tags": ["promocao"],
+    "available": true,
+    "variants": [
+      {
+        "name": "pizza",
+        "label": "Pizza",
+        "values": [
+          {
+            "label": "Calabresa",
+            "value": "calabresa",
+            "description": "Calabresa, mussarela, cebola e orégano",
+            "priceModifier": 0
+          },
+          {
+            "label": "Portuguesa",
+            "value": "portuguesa",
+            "description": "Presunto, mussarela, ovos, cebola, azeitona e orégano",
+            "priceModifier": 2
+          },
+          {
+            "label": "Frango com Catupiry",
+            "value": "frango-catupiry",
+            "description": "Frango desfiado, catupiry, milho e orégano",
+            "priceModifier": 2
+          },
+          {
+            "label": "Margherita",
+            "value": "margherita",
+            "description": "Mussarela, tomate fresco, manjericão e azeite",
+            "priceModifier": 0
+          }
+        ]
+      }
+    ]
+  }
+]
+
