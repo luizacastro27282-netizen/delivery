@@ -43,7 +43,7 @@ export const ProductModalFullscreen = ({ product, isOpen, onClose }: ProductModa
 
   // Estado para variantes
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
-  const [selectedPizzaFlavors, setSelectedPizzaFlavors] = useState<string[]>([]); // Para variantes de pizza com múltiplos sabores
+  const [selectedPizzaFlavors, setSelectedPizzaFlavors] = useState<Record<string, string[]>>({}); // Para variantes de pizza com múltiplos sabores - separado por variante
 
   // Quantidade e notas
   const [quantity, setQuantity] = useState(1);
@@ -76,7 +76,7 @@ export const ProductModalFullscreen = ({ product, isOpen, onClose }: ProductModa
       // Resetar para o produto inicial quando o modal fechar
       setFullProduct(product);
       setSelectedVariants({});
-      setSelectedPizzaFlavors([]);
+      setSelectedPizzaFlavors({});
       setSelectedSize('media');
       setSelectedFlavors([]);
       setSelectedBorder('sem-borda');
@@ -96,12 +96,22 @@ export const ProductModalFullscreen = ({ product, isOpen, onClose }: ProductModa
   };
 
   // Handler para variantes de pizza com múltiplos sabores
-  const handlePizzaFlavorToggle = (_variantName: string, value: string) => {
+  const handlePizzaFlavorToggle = (variantName: string, value: string) => {
     setSelectedPizzaFlavors(prev => {
-      if (prev.includes(value)) {
-        return prev.filter(v => v !== value);
-      } else if (prev.length < 2) {
-        return [...prev, value];
+      const currentFlavors = prev[variantName] || [];
+      
+      if (currentFlavors.includes(value)) {
+        // Remove o sabor
+        return {
+          ...prev,
+          [variantName]: currentFlavors.filter(v => v !== value)
+        };
+      } else if (currentFlavors.length < 2) {
+        // Adiciona o sabor (até 2)
+        return {
+          ...prev,
+          [variantName]: [...currentFlavors, value]
+        };
       }
       return prev;
     });
@@ -124,14 +134,17 @@ export const ProductModalFullscreen = ({ product, isOpen, onClose }: ProductModa
       fullProduct.variants.forEach(variant => {
         // Se é uma variante de Pizza com múltiplos sabores (aceita "Pizza", "Pizza 1", "Pizza 2", etc)
         const isPizzaVariant = variant.label.toLowerCase().startsWith('pizza');
-        if (isPizzaVariant && selectedPizzaFlavors.length > 0) {
-          // Pegar o maior priceModifier dos sabores selecionados
-          const maxModifier = selectedPizzaFlavors.reduce((max, flavorValue) => {
-            const option = variant.values.find(v => v.value === flavorValue);
-            const modifier = option?.priceModifier || 0;
-            return Math.max(max, modifier);
-          }, 0);
-          price += maxModifier;
+        if (isPizzaVariant) {
+          const variantFlavors = selectedPizzaFlavors[variant.name] || [];
+          if (variantFlavors.length > 0) {
+            // Pegar o maior priceModifier dos sabores selecionados desta variante
+            const maxModifier = variantFlavors.reduce((max, flavorValue) => {
+              const option = variant.values.find(v => v.value === flavorValue);
+              const modifier = option?.priceModifier || 0;
+              return Math.max(max, modifier);
+            }, 0);
+            price += maxModifier;
+          }
         } else {
           const selectedValue = selectedVariants[variant.name];
           if (selectedValue) {
@@ -188,7 +201,8 @@ export const ProductModalFullscreen = ({ product, isOpen, onClose }: ProductModa
         // Se é uma variante de Pizza, validar selectedPizzaFlavors (aceita "Pizza", "Pizza 1", "Pizza 2", etc)
         const isPizzaVariant = variant.label.toLowerCase().startsWith('pizza');
         if (isPizzaVariant) {
-          if (selectedPizzaFlavors.length === 0) {
+          const variantFlavors = selectedPizzaFlavors[variant.name] || [];
+          if (variantFlavors.length === 0) {
             return false;
           }
         } else if (!selectedVariants[variant.name]) {
@@ -207,13 +221,21 @@ export const ProductModalFullscreen = ({ product, isOpen, onClose }: ProductModa
   const handleAddToCart = () => {
     if (!canAddToCart()) {
       // Verificar se há variante de Pizza sem seleção
-      const pizzaVariant = fullProduct.variants?.find(v => v.label === 'Pizza');
-      if (pizzaVariant && selectedPizzaFlavors.length === 0) {
-        toast.error('Selecione pelo menos 1 sabor de pizza');
-        return;
+      const hasPizzaVariant = fullProduct.variants?.some(v => v.label.toLowerCase().startsWith('pizza'));
+      if (hasPizzaVariant) {
+        const emptyPizzaVariant = fullProduct.variants?.find(v => {
+          const isPizza = v.label.toLowerCase().startsWith('pizza');
+          const variantFlavors = selectedPizzaFlavors[v.name] || [];
+          return isPizza && variantFlavors.length === 0;
+        });
+        
+        if (emptyPizzaVariant) {
+          toast.error(`Selecione pelo menos 1 sabor para ${emptyPizzaVariant.label}`);
+          return;
+        }
       }
       
-      if (fullProduct.variants && fullProduct.variants.some(v => v.label !== 'Pizza' && !selectedVariants[v.name])) {
+      if (fullProduct.variants && fullProduct.variants.some(v => !v.label.toLowerCase().startsWith('pizza') && !selectedVariants[v.name])) {
         toast.error('Selecione todas as opções obrigatórias');
       } else if (fullProduct.type === 'pizza' && fullProduct.maxFlavors) {
         toast.error(`Selecione pelo menos 1 sabor`);
@@ -222,18 +244,41 @@ export const ProductModalFullscreen = ({ product, isOpen, onClose }: ProductModa
     }
 
     // Preparar selectedVariant para o carrinho
-    // Se houver variante de Pizza, usar os sabores selecionados
-    const pizzaVariant = fullProduct.variants?.find(v => v.label === 'Pizza');
-    const selectedVariant: SelectedVariant | undefined = fullProduct.variants && fullProduct.variants.length > 0
-      ? pizzaVariant
-        ? {
-            variantName: pizzaVariant.name,
-            value: selectedPizzaFlavors.join(', ') // Combinar os sabores selecionados
+    // Combinar todas as variantes (pizzas e não-pizzas) em um objeto único
+    const allVariantsForCart: Record<string, string> = {};
+    
+    // Adicionar variantes de pizza (todas as que começam com "pizza")
+    if (fullProduct.variants) {
+      fullProduct.variants.forEach(variant => {
+        const isPizza = variant.label.toLowerCase().startsWith('pizza');
+        if (isPizza) {
+          const variantFlavors = selectedPizzaFlavors[variant.name] || [];
+          if (variantFlavors.length > 0) {
+            allVariantsForCart[variant.label] = variantFlavors
+              .map(flavorValue => {
+                const option = variant.values.find(v => v.value === flavorValue);
+                return option?.label || flavorValue;
+              })
+              .join(' + ');
           }
-        : {
-            variantName: fullProduct.variants[0].name,
-            value: selectedVariants[fullProduct.variants[0].name]
+        } else {
+          // Variantes normais (não-pizza)
+          const selectedValue = selectedVariants[variant.name];
+          if (selectedValue) {
+            const option = variant.values.find(v => v.value === selectedValue);
+            allVariantsForCart[variant.label] = option?.label || selectedValue;
           }
+        }
+      });
+    }
+
+    const selectedVariant: SelectedVariant | undefined = Object.keys(allVariantsForCart).length > 0
+      ? {
+          variantName: 'variants',
+          value: Object.entries(allVariantsForCart)
+            .map(([label, value]) => `${label}: ${value}`)
+            .join(' | ')
+        }
       : undefined;
 
     addItem({
@@ -258,7 +303,7 @@ export const ProductModalFullscreen = ({ product, isOpen, onClose }: ProductModa
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="fixed inset-0 bg-white z-[10000] flex flex-col md:max-w-2xl md:mx-auto"
+          className="fixed inset-0 bg-white z-[10000] flex flex-col md:max-w-2xl md:mx-auto overflow-hidden"
         >
           {/* Header fixo */}
           <div className="bg-white border-b sticky top-0 z-10">
@@ -329,8 +374,9 @@ export const ProductModalFullscreen = ({ product, isOpen, onClose }: ProductModa
                               
                               <div className="space-y-2">
                                 {variant.values.map((option) => {
-                                  const isSelected = selectedPizzaFlavors.includes(option.value);
-                                  const canSelect = selectedPizzaFlavors.length < 2 || isSelected;
+                                  const variantFlavors = selectedPizzaFlavors[variant.name] || [];
+                                  const isSelected = variantFlavors.includes(option.value);
+                                  const canSelect = variantFlavors.length < 2 || isSelected;
                                   
                                   return (
                                     <label
@@ -351,8 +397,8 @@ export const ProductModalFullscreen = ({ product, isOpen, onClose }: ProductModa
                                           onChange={() => {
                                             handlePizzaFlavorToggle(variant.name, option.value);
                                             
-                                            // Só faz scroll automático quando selecionar o 2º sabor
-                                            const newCount = isSelected ? selectedPizzaFlavors.length - 1 : selectedPizzaFlavors.length + 1;
+                                            // Só faz scroll automático quando selecionar o 2º sabor desta variante
+                                            const newCount = isSelected ? variantFlavors.length - 1 : variantFlavors.length + 1;
                                             if (newCount === 2) {
                                               if (fullProduct.type === 'pizza') {
                                                 scrollToSection(borderRef);
@@ -626,7 +672,7 @@ export const ProductModalFullscreen = ({ product, isOpen, onClose }: ProductModa
           </div>
 
           {/* Footer fixo */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-3 sm:p-4 md:max-w-2xl md:mx-auto z-[10001]">
+          <div className="absolute bottom-0 left-0 right-0 bg-white border-t shadow-lg p-3 sm:p-4 z-20">
             <div className="flex items-center gap-2 sm:gap-4">
               {/* Controle de quantidade */}
               <div className="flex items-center gap-1 sm:gap-2 bg-gray-100 rounded-lg p-1">

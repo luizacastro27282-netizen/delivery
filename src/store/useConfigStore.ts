@@ -160,51 +160,46 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       
       if (!horario || !horario.aberto) return false;
 
-      // Converte horário atual para minutos desde meia-noite
+      // Converte horário atual para minutos desde meia-noite (0-1439)
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
       
       // Converte horários de abertura e fechamento para minutos
       const parseTime = (timeStr: string): number => {
         const [hours, minutes] = timeStr.split(':').map(Number);
-        // Se for 00:00, trata como 24:00 (1440 minutos) para facilitar comparação
-        if (hours === 0 && minutes === 0 && timeStr === '00:00') {
-          return 1440; // 24 horas em minutos
-        }
         return hours * 60 + minutes;
       };
       
       const aberturaMinutes = parseTime(horario.abertura);
-      let fechamentoMinutes = parseTime(horario.fechamento);
+      const fechamentoMinutes = parseTime(horario.fechamento);
       
       // Debug log
-      console.log('Verificando horário:', {
+      console.log('🕐 Verificando horário:', {
         diaSemana,
         abertura: horario.abertura,
         fechamento: horario.fechamento,
         aberturaMinutes,
         fechamentoMinutes,
         currentMinutes,
-        currentTime: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+        currentTime: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
+        cruzaMeiaNoite: fechamentoMinutes <= aberturaMinutes
       });
       
-      // Se fechamento é 00:00, significa que fecha à meia-noite (23:59:59)
-      // Nesse caso, está aberto de abertura até 23:59
-      if (horario.fechamento === '00:00') {
-        const isOpen = currentMinutes >= aberturaMinutes;
-        console.log('Fechamento 00:00 - Loja aberta?', isOpen);
-        return isOpen;
-      }
-      
-      // Se fechamento é menor que abertura, significa que cruza a meia-noite (ex: 23:00 -> 01:00)
-      if (fechamentoMinutes < aberturaMinutes) {
-        // Loja está aberta se estiver depois da abertura OU antes do fechamento
-        const isOpen = currentMinutes >= aberturaMinutes || currentMinutes <= fechamentoMinutes;
-        console.log('Cruza meia-noite - Loja aberta?', isOpen);
+      // Se fechamento <= abertura, significa que cruza a meia-noite
+      // Exemplo: abre 17:30 (1050) e fecha 04:00 (240)
+      // Está ABERTO: das 17:30 até 23:59 E de 00:00 até 03:59
+      // Está FECHADO: das 04:00 até 17:29
+      if (fechamentoMinutes <= aberturaMinutes) {
+        // Cruza meia-noite
+        // Está aberto se: hora atual >= abertura OU hora atual < fechamento
+        const isOpen = currentMinutes >= aberturaMinutes || currentMinutes < fechamentoMinutes;
+        console.log('🌙 Cruza meia-noite - Loja aberta?', isOpen);
         return isOpen;
       } else {
-        // Loja está aberta se estiver entre abertura e fechamento
-        const isOpen = currentMinutes >= aberturaMinutes && currentMinutes <= fechamentoMinutes;
-        console.log('Horário normal - Loja aberta?', isOpen);
+        // Não cruza meia-noite (horário normal)
+        // Exemplo: abre 08:00 (480) e fecha 18:00 (1080)
+        // Está aberto se: hora atual >= abertura E hora atual < fechamento
+        const isOpen = currentMinutes >= aberturaMinutes && currentMinutes < fechamentoMinutes;
+        console.log('☀️ Horário normal - Loja aberta?', isOpen);
         return isOpen;
       }
     } catch (error) {
