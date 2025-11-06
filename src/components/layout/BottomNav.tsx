@@ -1,7 +1,7 @@
 import { Home, Tag, Receipt, User, ShoppingCart } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn, formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { useCart } from '@/hooks/useCart';
 
 export const BottomNav = () => {
@@ -39,7 +39,7 @@ export const BottomNav = () => {
   ];
 
   return (
-    <>
+    <div>
       {/* Carrinho Fixo - aparece quando há itens */}
       <AnimatePresence>
         {itemCount > 0 && location.pathname === '/' && (
@@ -47,7 +47,13 @@ export const BottomNav = () => {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-20 left-4 right-4 z-30 md:hidden mb-2"
+            style={{
+              position: 'fixed',
+              bottom: '80px',
+              left: '16px',
+              right: '16px',
+              zIndex: 998
+            }}
           >
             <button
               onClick={() => navigate('/checkout')}
@@ -71,29 +77,60 @@ export const BottomNav = () => {
       </AnimatePresence>
 
       {/* Menu de Navegação */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 md:hidden">
-        <div className="grid grid-cols-4 h-16">
+      <nav 
+        id="mobile-bottom-nav"
+        style={{ 
+          zIndex: 9999, 
+          display: 'block',
+          visibility: 'visible',
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          width: '100vw',
+          maxWidth: '100%',
+          backgroundColor: '#ffffff',
+          borderTop: '1px solid #e5e7eb',
+          boxShadow: '0 -4px 6px -1px rgba(0, 0, 0, 0.1)',
+          margin: 0,
+          padding: 0
+        }}
+      >
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(4, 1fr)', 
+          width: '100%', 
+          height: '64px'
+        }}>
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={cn(
-                  'flex flex-col items-center justify-center gap-1 transition-colors',
-                  item.active
-                    ? 'text-primary-600'
-                    : 'text-gray-500 hover:text-gray-700'
-                )}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  color: item.active ? '#dc2626' : '#6b7280',
+                  transition: 'color 0.2s',
+                  width: '100%',
+                  height: '100%'
+                }}
               >
                 <Icon 
                   size={24} 
-                  className={item.active ? 'stroke-[2.5]' : 'stroke-2'}
+                  strokeWidth={item.active ? 2.5 : 2}
                 />
-                <span className={cn(
-                  'text-xs',
-                  item.active ? 'font-semibold' : 'font-normal'
-                )}>
+                <span style={{
+                  fontSize: '12px',
+                  fontWeight: item.active ? '600' : '400'
+                }}>
                   {item.label}
                 </span>
               </button>
@@ -101,6 +138,6 @@ export const BottomNav = () => {
           })}
         </div>
       </nav>
-    </>
+    </div>
   );
 };
