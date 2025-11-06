@@ -258,7 +258,7 @@ export const ProductModalFullscreen = ({ product, isOpen, onClose }: ProductModa
           animate={{ x: 0 }}
           exit={{ x: '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="fixed inset-0 bg-white z-[100] flex flex-col md:max-w-2xl md:mx-auto"
+          className="fixed inset-0 bg-white z-[10000] flex flex-col md:max-w-2xl md:mx-auto"
         >
           {/* Header fixo */}
           <div className="bg-white border-b sticky top-0 z-10">
@@ -626,7 +626,7 @@ export const ProductModalFullscreen = ({ product, isOpen, onClose }: ProductModa
           </div>
 
           {/* Footer fixo */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-3 sm:p-4 md:max-w-2xl md:mx-auto z-[101]">
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg p-3 sm:p-4 md:max-w-2xl md:mx-auto z-[10001]">
             <div className="flex items-center gap-2 sm:gap-4">
               {/* Controle de quantidade */}
               <div className="flex items-center gap-1 sm:gap-2 bg-gray-100 rounded-lg p-1">

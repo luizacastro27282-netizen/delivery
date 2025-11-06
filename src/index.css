@@ -150,3 +150,30 @@ img {
   }
 }
 
+/* Force BottomNav to always show */
+#mobile-bottom-nav {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 1000 !important;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  #mobile-bottom-nav {
+    display: block !important;
+  }
+  
+  body {
+    padding-bottom: 64px; /* Space for bottom nav */
+  }
+}
+
+/* Desktop hide */
+@media (min-width: 769px) {
+  #mobile-bottom-nav {
+    display: none !important;
+  }
+}
+

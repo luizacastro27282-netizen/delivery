@@ -23,29 +23,33 @@ export const OrderBumpCard = ({ orderBump, onAdd }: OrderBumpCardProps) => {
   const hasVariants = product.variants && product.variants.length > 0;
   const hasDiscount = desconto > 0;
 
-  // Calcular preço base
-  const basePrice = product.price || product.basePrice || 0;
-
-  // Calcular preço com desconto
-  let priceWithDiscount = basePrice;
-  if (descontoTipo === 'percent') {
-    priceWithDiscount = basePrice * (1 - desconto / 100);
-  } else {
-    priceWithDiscount = Math.max(0, basePrice - desconto);
-  }
-
-  // Aplicar modificadores de variantes
-  let finalPrice = priceWithDiscount;
+  // Calcular preço real do produto com as variantes selecionadas
+  let realPrice = product.price || product.basePrice || 0;
+  
+  // Se tem variantes selecionadas, aplicar os modificadores
   if (hasVariants && product.variants) {
     product.variants.forEach((variant: ProductVariant) => {
       const selectedValue = selectedVariants[variant.name];
       if (selectedValue) {
         const option = variant.values.find(v => v.value === selectedValue);
-        if (option) {
-          finalPrice += option.priceModifier;
+        if (option && option.priceModifier) {
+          realPrice += option.priceModifier;
         }
       }
     });
+  }
+
+  // Este é o preço SEM desconto (para mostrar "De R$ X")
+  const priceBeforeDiscount = realPrice;
+
+  // Aplicar o desconto sobre o preço REAL (com variantes)
+  let finalPrice = realPrice;
+  if (hasDiscount && desconto > 0) {
+    if (descontoTipo === 'percent') {
+      finalPrice = realPrice * (1 - desconto / 100);
+    } else {
+      finalPrice = Math.max(0, realPrice - desconto);
+    }
   }
 
   const handleVariantChange = (variantName: string, value: string) => {
@@ -170,13 +174,13 @@ export const OrderBumpCard = ({ orderBump, onAdd }: OrderBumpCardProps) => {
 
       {/* Preço */}
       <div className="flex flex-col mb-3">
-        {hasDiscount && basePrice > priceWithDiscount && (
+        {hasDiscount && priceBeforeDiscount > finalPrice && (
           <p className="text-xs text-gray-500 line-through">
-            {formatCurrency(basePrice)}
+            De {formatCurrency(priceBeforeDiscount)}
           </p>
         )}
-        <p className={`text-primary-600 font-bold text-sm ${hasDiscount ? 'text-green-600' : ''}`}>
-          {formatCurrency(finalPrice)}
+        <p className={`font-bold text-sm ${hasDiscount ? 'text-green-600' : 'text-primary-600'}`}>
+          {hasDiscount ? 'Por' : ''} {formatCurrency(finalPrice)}
         </p>
       </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Flame } from 'lucide-react';
+import { Clock, Flame, Users } from 'lucide-react';
 import { Product } from '@/types/product';
 import { useProductStore } from '@/store/useProductStore';
 import { formatCurrency } from '@/lib/utils';
@@ -16,6 +16,38 @@ export const FlashPromos = ({ onProductSelect }: FlashPromosProps) => {
   const combos = products.filter(p => 
     p.category?.toLowerCase() === 'combos' && p.available
   );
+  
+  // Função para determinar quantas pessoas o combo serve
+  const getServingSize = (comboName: string): string => {
+    const name = comboName.toLowerCase();
+    
+    // Combos GG - Família grande
+    if (name.includes('gg') || (name.includes('família') && name.includes('grande'))) {
+      return '8–12';
+    }
+    
+    // Combos G - Família
+    if (name.includes('família') || name.includes('familia') || name.includes('grande') || name.includes(' g ')) {
+      return '4–7';
+    }
+    
+    // Combos PP - Pequeno
+    if (name.includes('pp') || name.includes('pequen') || name.includes('individual')) {
+      return '2–4';
+    }
+    
+    // Combo Casal
+    if (name.includes('casal')) {
+      return '2';
+    }
+    
+    // Baseado em quantidade de pizzas
+    if (name.includes('3 pizza') || name.includes('três pizza')) return '4–7';
+    if (name.includes('2 pizza') || name.includes('duas pizza')) return '2–4';
+    if (name.includes('1 pizza') || name.includes('uma pizza')) return '2';
+    
+    return '2–4'; // padrão
+  };
   
   // Timer de 59 minutos (em segundos)
   const [timeRemaining, setTimeRemaining] = useState(59 * 60); // 59 minutos
@@ -68,6 +100,7 @@ export const FlashPromos = ({ onProductSelect }: FlashPromosProps) => {
             // Calcular preço base do combo
             const basePrice = combo.price || combo.basePrice || 0;
             const comparePrice = basePrice * 1.2; // Preço "de" (20% maior)
+            const servingSize = getServingSize(combo.name);
             
             return (
               <motion.div
@@ -79,7 +112,7 @@ export const FlashPromos = ({ onProductSelect }: FlashPromosProps) => {
               >
                 {/* Imagem */}
                 <div 
-                  className="w-full h-48 bg-gray-100 cursor-pointer"
+                  className="w-full h-48 bg-gray-100 cursor-pointer relative"
                   onClick={() => onProductSelect(combo)}
                 >
                   {combo.images && combo.images[0] ? (
@@ -93,6 +126,14 @@ export const FlashPromos = ({ onProductSelect }: FlashPromosProps) => {
                       <Flame size={64} />
                     </div>
                   )}
+                  
+                  {/* Badge de Pessoas */}
+                  <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-lg flex items-center gap-1.5">
+                    <Users className="text-primary-600" size={16} />
+                    <span className="text-sm font-bold text-gray-900">
+                      Serve {servingSize} pessoas
+                    </span>
+                  </div>
                 </div>
                 
                 {/* Informações */}

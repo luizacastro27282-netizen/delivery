@@ -89,11 +89,7 @@ export const AdminLogin = () => {
           </Button>
 
           {/* Dica de teste */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-900 font-semibold mb-1">💡 Credenciais de teste:</p>
-            <p className="text-sm text-blue-800">Usuário: <strong>admin</strong></p>
-            <p className="text-sm text-blue-800">Senha: <strong>admin123</strong></p>
-          </div>
+         
         </div>
       </div>
     </div>

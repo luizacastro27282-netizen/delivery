@@ -80,7 +80,7 @@ export const BottomNav = () => {
       <nav 
         id="mobile-bottom-nav"
         style={{ 
-          zIndex: 9999, 
+          zIndex: 1000, 
           display: 'block',
           visibility: 'visible',
           position: 'fixed',
