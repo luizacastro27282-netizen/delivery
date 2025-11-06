@@ -50,16 +50,16 @@ export const LocationModal = ({ isOpen, onSelectLocation }: LocationModalProps) 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-90 z-[200]"
+            className="fixed inset-0 bg-black bg-opacity-90 z-[9998]"
           />
 
           {/* Modal */}
-          <div className="fixed inset-0 z-[201] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 pointer-events-auto"
             >
               {/* Ícone */}
               <div className="flex justify-center mb-4">

@@ -142,18 +142,25 @@ export const Checkout = () => {
         toast.error('Por favor, informe um CPF válido com 11 dígitos');
         return;
       }
+      
+      // Validar endereço para delivery
       if (deliveryMethod === 'delivery') {
         const hasAddressSelected = !!selectedAddressId;
         const hasAddressFilled = !!(street && number && neighborhood && city);
         if (!hasAddressSelected && !hasAddressFilled) {
-          // Proteção: limpa seleção para forçar reescolha caso algo tenha ficado inconsistente
           setSelectedAddressId(undefined);
           toast.error('Selecione ou preencha um endereço de entrega');
           return;
         }
       }
       
-      // Se não estiver autenticado, tentar login/registro E cadastrar endereço
+      // Apenas validar e avançar - não registrar usuário ainda
+      // Os dados ficam salvos localmente até ir para pagamento
+      toast.success('Endereço confirmado!');
+      setStep('payment');
+      
+    } else if (step === 'payment') {
+      // AGORA sim tentamos registrar/logar o usuário e salvar endereço
       if (!isAuthenticated) {
         const loadingToast = toast.loading('Processando seus dados...');
         
@@ -169,17 +176,19 @@ export const Checkout = () => {
             const registerSuccess = await register(customerPhone, customerName, customerEmail);
             
             if (!registerSuccess) {
-              toast.error('Erro ao criar conta', { id: loadingToast });
-              return;
+              // Se falhar o registro, apenas avisa mas permite continuar
+              console.warn('Falha ao criar conta, continuando com dados locais');
+              toast.dismiss(loadingToast);
+              // Não retorna, deixa continuar
+            } else {
+              isNewUser = true;
+              toast.loading('Conta criada! Salvando endereço...', { id: loadingToast });
             }
-            
-            isNewUser = true;
-            toast.loading('Conta criada! Salvando endereço...', { id: loadingToast });
           } else {
             toast.loading('Login realizado! Salvando endereço...', { id: loadingToast });
           }
 
-          // Agora cadastrar o endereço se for delivery e tiver endereço preenchido
+          // Tentar cadastrar o endereço se for delivery e tiver endereço preenchido
           if (deliveryMethod === 'delivery' && !selectedAddressId && street && number && neighborhood && city) {
             const { user } = useAuthStore.getState();
             const leadIdentifier = user?.leadId || user?.phone || user?.id;
@@ -192,7 +201,7 @@ export const Checkout = () => {
                   complement: complement || undefined,
                   neighborhood,
                   city,
-                  state: 'SP', // Pode usar estado do locationStore se disponível
+                  state: 'SP',
                   zipCode: zipCode || undefined,
                   type: 'home' as const,
                   label: 'Endereço de entrega',
@@ -200,7 +209,6 @@ export const Checkout = () => {
                 };
 
                 console.log('Cadastrando endereço:', addressData);
-                
                 const createdAddress = await createAddress(leadIdentifier, addressData);
                 
                 if (createdAddress) {
@@ -208,22 +216,22 @@ export const Checkout = () => {
                   setSelectedAddressId(createdAddress.id);
                   toast.success(
                     isNewUser 
-                      ? 'Conta criada e endereço salvo com sucesso!' 
+                      ? 'Conta criada e endereço salvo!' 
                       : 'Login realizado e endereço salvo!', 
                     { id: loadingToast }
                   );
                 } else {
-                  toast.error('Erro ao salvar endereço', { id: loadingToast });
-                  return;
+                  console.warn('Falha ao salvar endereço, continuando com dados locais');
+                  toast.dismiss(loadingToast);
                 }
               } catch (error) {
                 console.error('Erro ao cadastrar endereço:', error);
-                toast.error('Erro ao salvar endereço', { id: loadingToast });
-                return;
+                console.warn('Continuando com dados locais');
+                toast.dismiss(loadingToast);
               }
             } else {
-              toast.error('Erro ao identificar usuário', { id: loadingToast });
-              return;
+              console.warn('Não foi possível identificar usuário, continuando com dados locais');
+              toast.dismiss(loadingToast);
             }
           } else {
             // Se já tinha endereço selecionado ou não é delivery
@@ -235,14 +243,14 @@ export const Checkout = () => {
             );
           }
         } catch (error) {
-          console.error('Erro no processo:', error);
-          toast.error('Erro ao processar seus dados', { id: loadingToast });
-          return;
+          console.error('Erro no processo de registro:', error);
+          console.warn('Continuando com dados locais');
+          toast.dismiss();
+          // Não retorna, deixa continuar com dados locais
         }
       }
       
-      setStep('payment');
-    } else if (step === 'payment') {
+      // Continua para criação do pedido independente de ter registrado ou não
       // Criar o pedido no backend ANTES de gerar o PIX
       const loadingToast = toast.loading('Criando pedido...');
       

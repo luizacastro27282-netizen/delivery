@@ -28,6 +28,7 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [selectedId, setSelectedId] = useState<string>(selectedAddressId || '');
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [confirmedAddress, setConfirmedAddress] = useState<Partial<Address> | null>(null);
 
   // Formulário de novo endereço
   const [newAddress, setNewAddress] = useState<CreateAddressData>({
@@ -114,11 +115,13 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
       return;
     }
 
-    // Se não estiver logado, apenas passa os dados para o checkout
+    // Se não estiver logado, apenas passa os dados para o checkout e mostra confirmação
     if (!isAuthenticated || !user) {
       console.log('AddressSelector: Usuário não logado, usando endereço local');
       onSelectAddress(newAddress);
+      setConfirmedAddress(newAddress);
       setShowNewAddressForm(false);
+      toast.success('Endereço confirmado!');
       return;
     }
 
@@ -269,8 +272,66 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
     <div className="space-y-4">
       <h3 className="font-bold text-lg mb-4">Endereço de Entrega</h3>
 
+      {/* Endereço Confirmado (para usuários não logados) */}
+      {!isAuthenticated && confirmedAddress && !showNewAddressForm && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-green-50 border-2 border-green-500 rounded-lg p-4"
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <MapPin className="text-green-600" size={20} />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-semibold text-green-900">{confirmedAddress.label || 'Endereço de Entrega'}</h4>
+                <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full font-semibold">
+                  Selecionado
+                </span>
+              </div>
+              <p className="text-sm text-green-800">
+                {confirmedAddress.street}, {confirmedAddress.number}
+                {confirmedAddress.complement && `, ${confirmedAddress.complement}`}
+              </p>
+              <p className="text-sm text-green-800">
+                {confirmedAddress.neighborhood}, {confirmedAddress.city} - {confirmedAddress.state}
+              </p>
+              {confirmedAddress.zipCode && (
+                <p className="text-xs text-green-700 mt-1">CEP: {confirmedAddress.zipCode}</p>
+              )}
+            </div>
+            <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-white flex-shrink-0">
+              <span>✓</span>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              // Preencher formulário com endereço confirmado
+              setNewAddress({
+                street: confirmedAddress.street || '',
+                number: confirmedAddress.number || '',
+                complement: confirmedAddress.complement || '',
+                neighborhood: confirmedAddress.neighborhood || '',
+                city: confirmedAddress.city || '',
+                state: confirmedAddress.state || 'SP',
+                zipCode: confirmedAddress.zipCode || '',
+                type: confirmedAddress.type || 'home',
+                label: confirmedAddress.label || 'Casa',
+                isDefault: confirmedAddress.isDefault || false
+              });
+              setConfirmedAddress(null);
+              setShowNewAddressForm(true);
+            }}
+            className="mt-3 text-sm text-green-700 hover:text-green-800 font-medium underline"
+          >
+            Alterar endereço
+          </button>
+        </motion.div>
+      )}
+
       {/* Endereços Salvos */}
-      {!showNewAddressForm && savedAddresses.length > 0 && (
+      {!showNewAddressForm && savedAddresses.length > 0 && !confirmedAddress && (
         <div className="space-y-3">
           {savedAddresses.map((address) => (
             <motion.div
@@ -350,7 +411,7 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
       )}
 
       {/* Botão Adicionar Novo Endereço */}
-      {!showNewAddressForm && (
+      {!showNewAddressForm && !confirmedAddress && (
         <Button
           onClick={() => {
             setEditingAddressId(null);
