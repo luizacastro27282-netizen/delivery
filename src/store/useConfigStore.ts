@@ -155,13 +155,41 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       if (!config || !config.horarioFuncionamento) return false;
 
       const now = new Date();
-      const diaSemana = diasSemana[now.getDay()];
+      
+      // Força o horário de Brasília (UTC-3)
+      const brasiliaOffset = -3 * 60; // -3 horas em minutos
+      const localOffset = now.getTimezoneOffset(); // offset do sistema em minutos (negativo para oeste de UTC)
+      const diffMinutes = brasiliaOffset - localOffset;
+      
+      const brasiliaTime = new Date(now.getTime() + diffMinutes * 60 * 1000);
+      
+      const diaSemana = diasSemana[brasiliaTime.getDay()];
       const horario = config.horarioFuncionamento[diaSemana];
       
-      if (!horario || !horario.aberto) return false;
+      console.log('🔍 Debug - Dados do horário:', {
+        diaSemana,
+        horario,
+        'horario existe?': !!horario,
+        'horario.aberto': horario?.aberto,
+        'horario.abertura': horario?.abertura,
+        'horario.fechamento': horario?.fechamento,
+        'timezone offset': localOffset,
+        'hora local raw': `${now.getHours()}:${now.getMinutes()}`,
+        'hora brasília': `${brasiliaTime.getHours()}:${brasiliaTime.getMinutes()}`
+      });
+      
+      if (!horario || !horario.aberto) {
+        console.log('⚠️ Loja não está configurada para abrir hoje');
+        return false;
+      }
+      
+      if (!horario.abertura || !horario.fechamento) {
+        console.log('⚠️ Horários não configurados corretamente');
+        return false;
+      }
 
-      // Converte horário atual para minutos desde meia-noite (0-1439)
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      // Converte horário atual para minutos desde meia-noite (0-1439) - USANDO HORÁRIO DE BRASÍLIA
+      const currentMinutes = brasiliaTime.getHours() * 60 + brasiliaTime.getMinutes();
       
       // Converte horários de abertura e fechamento para minutos
       const parseTime = (timeStr: string): number => {
@@ -191,8 +219,19 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       if (fechamentoMinutes <= aberturaMinutes) {
         // Cruza meia-noite
         // Está aberto se: hora atual >= abertura OU hora atual < fechamento
-        const isOpen = currentMinutes >= aberturaMinutes || currentMinutes < fechamentoMinutes;
-        console.log('🌙 Cruza meia-noite - Loja aberta?', isOpen);
+        const condicao1 = currentMinutes >= aberturaMinutes;
+        const condicao2 = currentMinutes < fechamentoMinutes;
+        const isOpen = condicao1 || condicao2;
+        
+        console.log('🌙 Cruza meia-noite - Debug detalhado:', {
+          currentMinutes,
+          aberturaMinutes,
+          fechamentoMinutes,
+          'currentMinutes >= aberturaMinutes': condicao1,
+          'currentMinutes < fechamentoMinutes': condicao2,
+          'resultado (condicao1 || condicao2)': isOpen
+        });
+        
         return isOpen;
       } else {
         // Não cruza meia-noite (horário normal)
@@ -210,13 +249,19 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
 
   getOpeningMessage: () => {
     try {
-      const { config } = get();
+      const { config, isStoreOpen } = get();
       if (!config || !config.horarioFuncionamento) return 'Carregando...';
 
       const now = new Date();
       const diaSemana = diasSemana[now.getDay()];
       const horario = config.horarioFuncionamento[diaSemana];
       
+      // Se a loja está aberta, mostra até que horas fica aberta
+      if (isStoreOpen()) {
+        return `Aberto até ${horario.fechamento}`;
+      }
+      
+      // Se não está aberta...
       if (!horario || !horario.aberto) {
         // Procura próximo dia aberto
         for (let i = 1; i <= 7; i++) {
@@ -229,6 +274,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         return 'Fechado temporariamente';
       }
 
+      // Se está configurado para abrir hoje mas ainda não abriu
       return `Abrimos às ${horario.abertura}`;
     } catch (error) {
       console.error('Erro ao obter mensagem de abertura:', error);
