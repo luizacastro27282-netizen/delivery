@@ -35,9 +35,11 @@ export const BannerHeader = () => {
   try {
     if (isStoreOpen) {
       storeOpen = isStoreOpen();
+      console.log('🏪 BannerHeader - Loja aberta?', storeOpen);
     }
     if (getOpeningMessage) {
       openingMessage = getOpeningMessage();
+      console.log('💬 BannerHeader - Mensagem:', openingMessage);
     }
     
     // Só mostra endereço se tiver cidade e estado selecionados
@@ -46,6 +48,15 @@ export const BannerHeader = () => {
     }
   } catch (error) {
     console.error('Erro ao obter informações da loja:', error);
+  }
+  
+  // Log do estado da configuração
+  console.log('⚙️ BannerHeader - Config carregado:', !!config);
+  if (config?.horarioFuncionamento) {
+    const now = new Date();
+    const diaSemana = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'][now.getDay()];
+    console.log('📅 BannerHeader - Dia da semana:', diaSemana);
+    console.log('🕐 BannerHeader - Horário hoje:', config.horarioFuncionamento[diaSemana]);
   }
 
   const getOpeningHoursText = () => {
