@@ -30,7 +30,7 @@ export const Checkout = () => {
   }, [cart]);
 
   const [step, setStep] = useState<'cart' | 'info' | 'payment' | 'pix'>('cart');
-  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('delivery');
+  const [deliveryMethod] = useState<DeliveryMethod>('delivery'); // Sempre delivery por padrão
   const [createdOrderId, setCreatedOrderId] = useState<string>('');
   const [orderPayment, setOrderPayment] = useState<any>(null);
 
