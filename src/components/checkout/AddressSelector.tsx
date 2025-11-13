@@ -44,6 +44,9 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
     isDefault: false
   });
 
+  // Estado para loading do CEP
+  const [loadingCep, setLoadingCep] = useState(false);
+
   // Carregar endereços ao montar o componente
   useEffect(() => {
     loadAddresses();
@@ -110,8 +113,15 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
   };
 
   const handleAddNewAddress = async () => {
-    if (!newAddress.street || !newAddress.number || !newAddress.neighborhood || !newAddress.city) {
-      toast.error('Preencha todos os campos obrigatórios');
+    if (!newAddress.street || !newAddress.number || !newAddress.neighborhood || !newAddress.city || !newAddress.zipCode) {
+      toast.error('Preencha todos os campos obrigatórios (incluindo CEP)');
+      return;
+    }
+
+    // Validar CEP (deve ter 8 dígitos)
+    const cleanCep = newAddress.zipCode.replace(/\D/g, '');
+    if (cleanCep.length !== 8) {
+      toast.error('CEP inválido. Digite um CEP com 8 dígitos');
       return;
     }
 
@@ -258,6 +268,59 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
       isDefault: address.isDefault
     });
     setShowNewAddressForm(true);
+  };
+
+  // Buscar endereço pelo CEP usando ViaCEP
+  const handleCepSearch = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    
+    if (cleanCep.length !== 8) return;
+
+    setLoadingCep(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+
+      if (data.erro) {
+        toast.error('CEP não encontrado');
+        return;
+      }
+
+      // Preencher campos automaticamente
+      setNewAddress(prev => ({
+        ...prev,
+        street: data.logradouro || prev.street,
+        neighborhood: data.bairro || prev.neighborhood,
+        city: data.localidade || prev.city,
+        state: data.uf || prev.state,
+        zipCode: cleanCep
+      }));
+
+      toast.success('CEP encontrado! Verifique os dados.');
+    } catch (error) {
+      console.error('Erro ao buscar CEP:', error);
+      toast.error('Erro ao buscar CEP. Digite manualmente.');
+    } finally {
+      setLoadingCep(false);
+    }
+  };
+
+  // Formatar CEP com máscara
+  const formatCep = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 5) return numbers;
+    return numbers.replace(/(\d{5})(\d{1,3})/, '$1-$2');
+  };
+
+  const handleCepChange = (value: string) => {
+    const formatted = formatCep(value);
+    setNewAddress(prev => ({ ...prev, zipCode: formatted }));
+    
+    // Buscar automaticamente quando completar 8 dígitos
+    const cleanCep = value.replace(/\D/g, '');
+    if (cleanCep.length === 8) {
+      handleCepSearch(cleanCep);
+    }
   };
 
   if (loading) {
@@ -447,6 +510,24 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
           <h4 className="font-semibold mb-3">
             {editingAddressId ? 'Editar Endereço' : 'Novo Endereço'}
           </h4>
+
+          {/* CEP - Primeiro campo para busca automática */}
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              CEP *
+              {loadingCep && <span className="ml-2 text-xs text-primary-600">(Buscando...)</span>}
+            </label>
+            <Input
+              value={newAddress.zipCode}
+              onChange={(e) => handleCepChange(e.target.value)}
+              placeholder="00000-000"
+              maxLength={9}
+              disabled={loadingCep}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Digite o CEP para preencher automaticamente
+            </p>
+          </div>
           
           {/* Tipo e Label */}
           <div className="grid grid-cols-2 gap-3">
@@ -479,6 +560,7 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
                 value={newAddress.street}
                 onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
                 placeholder="Nome da rua"
+                disabled={loadingCep}
               />
             </div>
             <div>
@@ -506,6 +588,7 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
               value={newAddress.neighborhood}
               onChange={(e) => setNewAddress({ ...newAddress, neighborhood: e.target.value })}
               placeholder="Nome do bairro"
+              disabled={loadingCep}
             />
           </div>
 
@@ -516,6 +599,7 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
                 value={newAddress.city}
                 onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
                 placeholder="Cidade"
+                disabled={loadingCep}
               />
             </div>
             <div>
@@ -524,6 +608,7 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
                 value={newAddress.state}
                 onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
                 className="w-full p-2 border-2 border-gray-300 rounded-lg"
+                disabled={loadingCep}
               >
                 <option value="AC">AC</option>
                 <option value="AL">AL</option>
@@ -556,16 +641,6 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">CEP (opcional)</label>
-            <Input
-              value={newAddress.zipCode}
-              onChange={(e) => setNewAddress({ ...newAddress, zipCode: e.target.value })}
-              placeholder="00000-000"
-              maxLength={9}
-            />
-          </div>
-
           {isAuthenticated && (
             <label className="flex items-center gap-2">
               <input
@@ -582,7 +657,7 @@ export const AddressSelector = ({ onSelectAddress, selectedAddressId }: AddressS
             <Button
               onClick={editingAddressId ? handleUpdateAddress : handleAddNewAddress}
               className="flex-1"
-              disabled={!newAddress.street || !newAddress.number || !newAddress.neighborhood || !newAddress.city}
+              disabled={!newAddress.street || !newAddress.number || !newAddress.neighborhood || !newAddress.city || !newAddress.zipCode || loadingCep}
             >
               {editingAddressId ? 'Salvar Alterações' : 'Confirmar Endereço'}
             </Button>

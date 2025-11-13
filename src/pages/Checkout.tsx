@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft,  MapPin, User, QrCode } from 'lucide-react';
+import { ArrowLeft,  MapPin, User, QrCode, LogIn } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { useOrderStore } from '@/store/useOrderStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -40,6 +40,7 @@ export const Checkout = () => {
   const [customerEmail, setCustomerEmail] = useState('');
   const [wantsCpfOnInvoice, setWantsCpfOnInvoice] = useState(false);
   const [customerCpf, setCustomerCpf] = useState('');
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // Endereço
   const [street, setStreet] = useState('');
@@ -87,6 +88,51 @@ export const Checkout = () => {
     savings: 0
   };
   const clearCart = cart?.clearCart || (() => {});
+
+  // Máscara de telefone
+  const formatPhone = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 10) {
+      return numbers.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3').trim();
+    }
+    return numbers.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3').trim();
+  };
+
+  const handlePhoneChange = (value: string) => {
+    const formatted = formatPhone(value);
+    setCustomerPhone(formatted);
+  };
+
+  // Handler para fazer login
+  const handleLoginAttempt = async () => {
+    if (!customerPhone) {
+      toast.error('Digite seu telefone');
+      return;
+    }
+
+    const cleanPhone = customerPhone.replace(/\D/g, '');
+    if (cleanPhone.length < 10 || cleanPhone.length > 11) {
+      toast.error('Telefone inválido');
+      return;
+    }
+
+    const loadingToast = toast.loading('Fazendo login...');
+    try {
+      const { login } = useAuthStore.getState();
+      const loginSuccess = await login(customerPhone);
+      
+      if (loginSuccess) {
+        toast.success('Login realizado com sucesso!', { id: loadingToast });
+        setShowLoginPrompt(false);
+      } else {
+        toast.error('Telefone não encontrado. Por favor, preencha seus dados para criar uma conta.', { id: loadingToast });
+        setShowLoginPrompt(false);
+      }
+    } catch (error) {
+      console.error('Erro ao fazer login:', error);
+      toast.error('Erro ao fazer login. Tente novamente.', { id: loadingToast });
+    }
+  };
 
   // Handler para selecionar endereço
   const handleAddressSelect = (address: any) => {
@@ -137,6 +183,13 @@ export const Checkout = () => {
         return;
       }
       
+      // Validar telefone (deve ter pelo menos 10 dígitos)
+      const cleanPhone = customerPhone.replace(/\D/g, '');
+      if (cleanPhone.length < 10 || cleanPhone.length > 11) {
+        toast.error('Telefone inválido. Digite um número válido com DDD');
+        return;
+      }
+      
       // Validar CPF se marcou a opção
       if (wantsCpfOnInvoice && (!customerCpf || customerCpf.length !== 11)) {
         toast.error('Por favor, informe um CPF válido com 11 dígitos');
@@ -146,21 +199,24 @@ export const Checkout = () => {
       // Validar endereço para delivery
       if (deliveryMethod === 'delivery') {
         const hasAddressSelected = !!selectedAddressId;
-        const hasAddressFilled = !!(street && number && neighborhood && city);
+        const hasAddressFilled = !!(street && number && neighborhood && city && zipCode);
         if (!hasAddressSelected && !hasAddressFilled) {
           setSelectedAddressId(undefined);
-          toast.error('Selecione ou preencha um endereço de entrega');
+          toast.error('Selecione ou preencha um endereço de entrega completo (incluindo CEP)');
           return;
+        }
+        
+        // Validar CEP se foi preenchido manualmente
+        if (!hasAddressSelected && zipCode) {
+          const cleanZipCode = zipCode.replace(/\D/g, '');
+          if (cleanZipCode.length !== 8) {
+            toast.error('CEP inválido. Digite um CEP com 8 dígitos');
+            return;
+          }
         }
       }
       
-      // Apenas validar e avançar - não registrar usuário ainda
-      // Os dados ficam salvos localmente até ir para pagamento
-      toast.success('Endereço confirmado!');
-      setStep('payment');
-      
-    } else if (step === 'payment') {
-      // AGORA sim tentamos registrar/logar o usuário e salvar endereço
+      // AGORA tentamos registrar/logar o usuário e salvar endereço
       if (!isAuthenticated) {
         const loadingToast = toast.loading('Processando seus dados...');
         
@@ -250,7 +306,12 @@ export const Checkout = () => {
         }
       }
       
-      // Continua para criação do pedido independente de ter registrado ou não
+      // Após login/registro, avança para pagamento
+      toast.success('Dados confirmados!');
+      setStep('payment');
+      
+    } else if (step === 'payment') {
+      // Agora só cria o pedido, pois o login/registro já foi feito
       // Criar o pedido no backend ANTES de gerar o PIX
       const loadingToast = toast.loading('Criando pedido...');
       
@@ -454,6 +515,82 @@ export const Checkout = () => {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
               >
+                {/* Já tem conta? */}
+                {!isAuthenticated && (
+                  <div className="bg-primary-50 border-2 border-primary-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                          <LogIn className="text-primary-600" size={20} />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-primary-900">Já tem cadastro?</h4>
+                          <p className="text-sm text-primary-700">Faça login para usar seus dados salvos</p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => setShowLoginPrompt(true)}
+                        variant="outline"
+                        size="sm"
+                        className="border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white"
+                      >
+                        Entrar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Modal de Login */}
+                {showLoginPrompt && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+                    onClick={() => setShowLoginPrompt(false)}
+                  >
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                          <LogIn className="text-primary-600" size={24} />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900">Fazer Login</h3>
+                          <p className="text-sm text-gray-600">Digite seu telefone cadastrado</p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <Input
+                          placeholder="(00) 00000-0000"
+                          value={customerPhone}
+                          onChange={(e) => handlePhoneChange(e.target.value)}
+                          maxLength={15}
+                        />
+                        
+                        <div className="flex gap-3">
+                          <Button
+                            onClick={handleLoginAttempt}
+                            className="flex-1"
+                          >
+                            Entrar
+                          </Button>
+                          <Button
+                            onClick={() => setShowLoginPrompt(false)}
+                            variant="outline"
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+
                 {/* Dados pessoais */}
                 <div className="bg-white rounded-lg p-6 shadow-md">
                   <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
@@ -465,17 +602,21 @@ export const Checkout = () => {
                       placeholder="Nome completo *"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
+                      disabled={isAuthenticated}
                     />
                     <Input
-                      placeholder="Telefone/WhatsApp *"
+                      placeholder="Telefone/WhatsApp * (00) 00000-0000"
                       value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      onChange={(e) => handlePhoneChange(e.target.value)}
+                      maxLength={15}
+                      disabled={isAuthenticated}
                     />
                     <Input
                       type="email"
                       placeholder="E-mail (opcional)"
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
+                      disabled={isAuthenticated}
                     />
                     
                     {/* CPF na nota */}
@@ -527,34 +668,13 @@ export const Checkout = () => {
                   </div>
                 </div>
 
-                {/* Método de entrega */}
+                {/* Endereço de Entrega */}
                 <div className="bg-white rounded-lg p-6 shadow-md">
-                  <h3 className="text-lg font-semibold mb-4">Método de Entrega</h3>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <button
-                      onClick={() => setDeliveryMethod('delivery')}
-                      className={`p-4 rounded-lg border-2 transition-all ${
-                        deliveryMethod === 'delivery'
-                          ? 'border-primary-600 bg-primary-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      <MapPin size={24} className="mx-auto mb-2" />
-                      <p className="font-semibold">Entrega</p>
-                    </button>
-                    <button
-                      onClick={() => {}}
-                      disabled
-                      className={`p-4 rounded-lg border-2 transition-all opacity-50 cursor-not-allowed border-gray-200`}
-                    >
-                      <User size={24} className="mx-auto mb-2" />
-                      <p className="font-semibold">Retirada (desativado)</p>
-                    </button>
-                  </div>
-
-                  {deliveryMethod === 'delivery' && (
-                    <AddressSelector onSelectAddress={handleAddressSelect} selectedAddressId={selectedAddressId} />
-                  )}
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <MapPin size={20} />
+                    Endereço de Entrega
+                  </h3>
+                  <AddressSelector onSelectAddress={handleAddressSelect} selectedAddressId={selectedAddressId} />
                 </div>
               </motion.div>
             )}
