@@ -150,6 +150,10 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
   },
 
   isStoreOpen: () => {
+    // ⚠️ SEMPRE RETORNA TRUE - LOJA SEMPRE ABERTA
+    return true;
+    
+    /* CÓDIGO ORIGINAL DE VERIFICAÇÃO DE HORÁRIO (DESABILITADO)
     try {
       const { config } = get();
       if (!config || !config.horarioFuncionamento) return false;
@@ -245,40 +249,38 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       console.error('Erro ao verificar se loja está aberta:', error);
       return false;
     }
+    */
   },
 
   getOpeningMessage: () => {
     try {
-      const { config, isStoreOpen } = get();
+      const { config } = get();
       if (!config || !config.horarioFuncionamento) return 'Carregando...';
 
       const now = new Date();
       const diaSemana = diasSemana[now.getDay()];
       const horario = config.horarioFuncionamento[diaSemana];
       
-      // Se a loja está aberta, mostra até que horas fica aberta
-      if (isStoreOpen()) {
-        return `Aberto até ${horario.fechamento}`;
+      // Como a loja está sempre "aberta", mostra até quando fica aberta hoje
+      if (horario && horario.aberto && horario.fechamento) {
+        return `Hoje até ${horario.fechamento}`;
       }
       
-      // Se não está aberta...
+      // Se hoje está fechado, procura próximo dia aberto
       if (!horario || !horario.aberto) {
-        // Procura próximo dia aberto
         for (let i = 1; i <= 7; i++) {
           const proximoDia = diasSemana[(now.getDay() + i) % 7];
           const proximoHorario = config.horarioFuncionamento[proximoDia];
           if (proximoHorario && proximoHorario.aberto) {
-            return `Abrimos ${proximoDia} às ${proximoHorario.abertura}`;
+            return `${proximoDia} ${proximoHorario.abertura} - ${proximoHorario.fechamento}`;
           }
         }
-        return 'Fechado temporariamente';
       }
-
-      // Se está configurado para abrir hoje mas ainda não abriu
-      return `Abrimos às ${horario.abertura}`;
+      
+      return 'Veja nossos horários';
     } catch (error) {
       console.error('Erro ao obter mensagem de abertura:', error);
-      return 'Carregando...';
+      return 'Veja nossos horários';
     }
   }
 }));
